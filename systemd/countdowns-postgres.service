@@ -1,0 +1,11 @@
+[Unit]
+Description=PostgreSQL container for countdowns
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/podman run --rm --name countdowns-postgres -e POSTGRES_DB=countdowns -e POSTGRES_USER=countdowns -e POSTGRES_PASSWORD=countdowns -v countdowns-pgdata:/var/lib/postgresql/data -p 5432:5432 docker.io/library/postgres:16-alpine
+ExecStop=/usr/bin/podman stop countdowns-postgres
+Restart=always
+
+[Install]
+WantedBy=default.target

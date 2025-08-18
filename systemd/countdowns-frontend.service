@@ -1,0 +1,11 @@
+[Unit]
+Description=Caddy front controller serving countdowns frontend
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/podman run --rm --name countdowns-frontend -p 80:80 -p 443:443 ghcr.io/countdowns/frontend:latest
+ExecStop=/usr/bin/podman stop countdowns-frontend
+Restart=always
+
+[Install]
+WantedBy=default.target

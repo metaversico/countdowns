@@ -1,0 +1,11 @@
+[Unit]
+Description=Countdowns backend container
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/podman run --rm --name countdowns-backend -p 8000:8000 ghcr.io/countdowns/backend:latest
+ExecStop=/usr/bin/podman stop countdowns-backend
+Restart=always
+
+[Install]
+WantedBy=default.target
