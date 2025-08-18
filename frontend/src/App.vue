@@ -11,22 +11,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import CountdownForm from './components/CountdownForm.vue'
 import CountdownList from './components/CountdownList.vue'
-
-interface Countdown {
-  id: string
-  title: string
-  expiresAt: string
-}
+import { listCountdowns, type Countdown } from './services/countdowns'
 
 const countdowns = ref<Countdown[]>([])
 
 async function loadCountdowns() {
   try {
-    const res = await axios.get('/api/countdowns')
-    countdowns.value = res.data
+    countdowns.value = await listCountdowns()
   } catch (err) {
     console.error(err)
   }
