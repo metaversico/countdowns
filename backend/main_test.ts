@@ -1,5 +1,5 @@
 import app from "./main.ts";
-import { assert, assertEquals } from "https://deno.land/std@0.204.0/assert/mod.ts";
+import { assert, assertEquals } from "@std/assert";
 
 Deno.test("create and list countdown", async () => {
   const expiration = new Date(Date.now() + 60_000).toISOString();

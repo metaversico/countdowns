@@ -8,7 +8,7 @@ deps:
 
 # Start PostgreSQL using Podman
 db:
-> podman-compose -f containers/postgres.yml up -d 2>/dev/null || true
+> podman compose -f containers/postgres.yml up -d 2>/dev/null || true
 
 # Run the Vue frontend
 frontend:
@@ -16,7 +16,7 @@ frontend:
 
 # Run the Deno backend
 backend:
-> deno run --allow-net --allow-env --watch backend/main.ts
+> deno run --allow-net --allow-env --unstable-kv --watch backend/main.ts
 
 # Launch backend and frontend together
 dev: db
@@ -38,4 +38,4 @@ start:
 
 # Clean up containers and artifacts
 clean:
-> podman-compose -f containers/postgres.yml down 2>/dev/null || true
+> podman compose -f containers/postgres.yml down 2>/dev/null || true
