@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write main.ts",
+    "test": "deno test --allow-net"
+  },
+  "imports": {
+    "hono": "https://deno.land/x/hono@v3.9.2/mod.ts",
+    "hono/": "https://deno.land/x/hono@v3.9.2/"
+  }
+}
