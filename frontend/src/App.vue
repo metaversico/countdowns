@@ -48,6 +48,7 @@
                 <CountdownList 
                   :items="filteredCountdowns" 
                   @view-countdown="viewCountdown"
+                  @countdown-expired="onCountdownExpired"
                 />
               </div>
             </Transition>
@@ -59,6 +60,7 @@
         <CountdownView 
           :countdown="selectedCountdown!" 
           @create-countdown="goToCreate"
+          @countdown-expired="onCountdownExpired"
         />
         <button @click="goHome" class="back-btn">← Back to Home</button>
       </div>
@@ -78,6 +80,8 @@ import Toast from './components/Toast.vue'
 import { listCountdowns, type Countdown } from './services/countdowns'
 import { useToast } from './composables/useToast'
 import { analytics } from './services/analytics'
+
+const { success } = useToast()
 
 const countdowns = ref<Countdown[]>([])
 const currentView = ref<'home' | 'view'>('home')
@@ -150,6 +154,12 @@ function goToCreate() {
 function goHome() {
   currentView.value = 'home'
   selectedCountdown.value = null
+}
+
+function onCountdownExpired(countdown: Countdown) {
+  success(`🎉 "${countdown.title}" has ended!`, 5000)
+  // refresh the countdowns to update categories
+  loadCountdowns()
 }
 
 onMounted(loadCountdowns)

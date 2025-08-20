@@ -88,7 +88,12 @@
       <h3>Preview</h3>
       <div :class="`countdown-preview theme-${theme}`">
         <h2>{{ title || 'Your countdown title' }}</h2>
-        <div class="countdown-timer">{{ formatTimeLeft() }}</div>
+        <CountdownTimer 
+          v-if="expiration"
+          :expires-at="expiration"
+          :show-progress="true"
+          class="preview-timer"
+        />
         <p v-if="text">{{ text }}</p>
         <img v-if="imageUrl" :src="imageUrl" alt="Countdown image" class="preview-image" />
       </div>
@@ -104,6 +109,7 @@
 import { ref, computed, watch } from 'vue'
 import { createCountdown, type CountdownInput } from '../services/countdowns'
 import { useToast } from '../composables/useToast'
+import CountdownTimer from './CountdownTimer.vue'
 
 const emit = defineEmits<{ 
   (e: 'created', countdown: any): void 
@@ -172,25 +178,7 @@ function setQuickDuration() {
   }
 }
 
-function formatTimeLeft(): string {
-  if (!expiration.value) return '00:00:00'
-  
-  const now = new Date().getTime()
-  const target = new Date(expiration.value).getTime()
-  const diff = target - now
-
-  if (diff <= 0) return '00:00:00'
-
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-
-  if (days > 0) {
-    return `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  }
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
+// Removed formatTimeLeft function - now using CountdownTimer component
 
 watch([title, expiration], () => {
   validateTitle()
@@ -358,11 +346,10 @@ input.error, textarea.error, select.error {
   border-radius: 4px;
 }
 
-.countdown-timer {
-  font-family: monospace;
-  font-size: 2rem;
-  font-weight: bold;
+/* CountdownTimer component handles its own styling */
+.preview-timer {
   margin: 1rem 0;
+  transform: scale(0.8);
 }
 
 .preview-image {
