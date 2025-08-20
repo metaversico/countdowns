@@ -19,9 +19,12 @@
           <div v-if="item.theme" class="theme-indicator" :class="`theme-${item.theme}`"></div>
         </div>
         
-        <div class="countdown-timer">
-          {{ formatTimeLeft(item.expiration) }}
-        </div>
+        <CountdownTimer 
+          :expires-at="item.expiration"
+          :started-at="item.createdAt"
+          compact
+          @expired="handleCountdownExpired(item)"
+        />
         
         <div v-if="item.text" class="countdown-description">
           {{ truncateText(item.text, 100) }}
@@ -49,6 +52,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Countdown } from '../services/countdowns'
+import CountdownTimer from './CountdownTimer.vue'
 
 interface Props {
   items: Countdown[]
@@ -57,6 +61,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'view-countdown', countdown: Countdown): void
+  (e: 'countdown-expired', countdown: Countdown): void
 }>()
 
 function isExpired(item: Countdown): boolean {
@@ -70,27 +75,8 @@ function isSoon(item: Countdown): boolean {
   return diff > 0 && diff <= 24 * 60 * 60 * 1000 // 24 hours
 }
 
-function formatTimeLeft(expiration: string): string {
-  const now = new Date().getTime()
-  const target = new Date(expiration).getTime()
-  const diff = target - now
-
-  if (diff <= 0) return 'Ended'
-
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-
-  if (days > 0) {
-    return `${days}d ${hours}h`
-  } else if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  } else if (minutes > 0) {
-    return `${minutes}m`
-  } else {
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-    return `${seconds}s`
-  }
+function handleCountdownExpired(countdown: Countdown) {
+  emit('countdown-expired', countdown)
 }
 
 function formatCreatedDate(createdAt: string): string {
@@ -232,22 +218,7 @@ async function copyShareLink(item: Countdown) {
   background: linear-gradient(45deg, #8e9aaf, #a8dadc);
 }
 
-.countdown-timer {
-  font-family: 'Courier New', monospace;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #007bff;
-  margin-bottom: 1rem;
-  text-align: center;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.expired .countdown-timer {
-  color: #6c757d;
-  background-color: #e9ecef;
-}
+/* CountdownTimer component now handles its own styling */
 
 .countdown-description {
   color: #6c757d;

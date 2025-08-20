@@ -4,9 +4,13 @@
       <div class="countdown-content">
         <h1 class="countdown-title">{{ countdown.title }}</h1>
         
-        <div class="countdown-timer" :class="{ expired: isExpired, final: isFinalMinute }">
-          {{ formatTimeLeft() }}
-        </div>
+        <CountdownTimer 
+          :expires-at="countdown.expiration"
+          :started-at="countdown.createdAt"
+          :show-progress="true"
+          class="main-countdown-timer"
+          @expired="onCountdownExpired"
+        />
         
         <div v-if="isExpired" class="expired-message">
           🎉 This countdown has ended!
@@ -80,8 +84,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import type { Countdown } from '../services/countdowns'
+import CountdownTimer from './CountdownTimer.vue'
 
 interface Props {
   countdown: Countdown
@@ -90,12 +95,11 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'create-countdown'): void
+  (e: 'countdown-expired'): void
 }>()
 
 const copied = ref(false)
 const imageError = ref(false)
-
-let timerInterval: number | null = null
 
 const isExpired = computed(() => {
   return new Date(props.countdown.expiration) <= new Date()
@@ -147,6 +151,10 @@ function formatTimeLeft(): string {
     return `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
   }
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
+
+function onCountdownExpired() {
+  emit('countdown-expired')
 }
 
 function formatCreatedDate(): string {
@@ -207,19 +215,7 @@ async function copyUrl() {
   }
 }
 
-function updateTimer() {
-  // Force reactivity update for timer
-}
-
-onMounted(() => {
-  timerInterval = window.setInterval(updateTimer, 1000)
-})
-
-onUnmounted(() => {
-  if (timerInterval) {
-    clearInterval(timerInterval)
-  }
-})
+// Timer handling now done by CountdownTimer component
 </script>
 
 <style scoped>
@@ -254,27 +250,18 @@ onUnmounted(() => {
   word-break: break-word;
 }
 
-.countdown-timer {
-  font-family: 'Courier New', monospace;
-  font-size: 4rem;
-  font-weight: bold;
+/* CountdownTimer component handles its own styling */
+.main-countdown-timer {
   margin: 2rem 0;
-  letter-spacing: 0.1em;
-  transition: all 0.3s ease;
+  transform: scale(1.2);
 }
 
-.countdown-timer.final {
-  animation: pulse 1s infinite;
-  color: var(--danger-color, #dc3545);
+.main-countdown-timer :deep(.time-value) {
+  font-size: 2.5rem;
 }
 
-.countdown-timer.expired {
-  color: var(--muted-color, #6c757d);
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+.main-countdown-timer :deep(.time-label) {
+  font-size: 1rem;
 }
 
 .expired-message {
