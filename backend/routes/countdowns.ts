@@ -23,6 +23,9 @@ countdown.post("/", async (c) => {
     ctaUrl: body.ctaUrl ?? "",
     expiration: new Date(body.expiration).toISOString(),
     createdAt: now.toISOString(),
+    expiredText: body.expiredText ?? "",
+    expiredImageUrl: body.expiredImageUrl ?? "",
+    expiredCtaUrl: body.expiredCtaUrl ?? "",
   };
   await saveCountdown(countdown);
   return c.json(countdown, 201);

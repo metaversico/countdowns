@@ -20,7 +20,7 @@ dev:
 
 # Run tests
 test:
-> deno test
+> (cd backend && deno task test)
 > npm --prefix frontend test 2>/dev/null || true
 
 # Build production assets

@@ -16,22 +16,22 @@
           🎉 This countdown has ended!
         </div>
         
-        <p v-if="countdown.text" class="countdown-description">
-          {{ countdown.text }}
+        <p v-if="currentText" class="countdown-description">
+          {{ currentText }}
         </p>
         
-        <div v-if="countdown.imageUrl" class="countdown-image-container">
+        <div v-if="currentImageUrl" class="countdown-image-container">
           <img 
-            :src="countdown.imageUrl" 
+            :src="currentImageUrl"
             :alt="countdown.title"
             class="countdown-image"
             @error="onImageError"
           />
         </div>
         
-        <div v-if="countdown.ctaUrl" class="cta-container">
+        <div v-if="currentCtaUrl" class="cta-container">
           <a 
-            :href="countdown.ctaUrl" 
+            :href="currentCtaUrl"
             target="_blank" 
             rel="noopener noreferrer"
             class="cta-button"
@@ -104,6 +104,54 @@ const imageError = ref(false)
 const isExpired = computed(() => {
   return new Date(props.countdown.expiration) <= new Date()
 })
+
+const isFinalMinute = computed(() => {
+  const now = new Date().getTime()
+  const target = new Date(props.countdown.expiration).getTime()
+  const diff = target - now
+  return diff > 0 && diff <= 60000 // Last minute
+})
+
+const currentText = computed(() => {
+  if (isExpired.value && props.countdown.expiredText) {
+    return props.countdown.expiredText
+  }
+  return props.countdown.text
+})
+
+const currentImageUrl = computed(() => {
+  if (isExpired.value && props.countdown.expiredImageUrl) {
+    return props.countdown.expiredImageUrl
+  }
+  return props.countdown.imageUrl
+})
+
+const currentCtaUrl = computed(() => {
+  if (isExpired.value && props.countdown.expiredCtaUrl) {
+    return props.countdown.expiredCtaUrl
+  }
+  return props.countdown.ctaUrl
+})
+
+function formatTimeLeft(): string {
+  if (!props.countdown.expiration) return '00:00:00'
+  
+  const now = new Date().getTime()
+  const target = new Date(props.countdown.expiration).getTime()
+  const diff = target - now
+
+  if (diff <= 0) return '00:00:00'
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+  if (days > 0) {
+    return `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
 
 function onCountdownExpired() {
   emit('countdown-expired')
