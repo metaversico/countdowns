@@ -1,15 +1,18 @@
 import axios from 'axios'
 
-export interface Countdown {
-  id: string
-  title: string
-  expiration: string
-  createdAt?: string
-}
-
 export interface CountdownInput {
   title: string
   expiration: string
+  socialAccounts?: string[]
+  text?: string
+  imageUrl?: string
+  ctaUrl?: string
+  theme?: string
+}
+
+export interface Countdown extends CountdownInput {
+  id: string
+  createdAt: string
 }
 
 export async function listCountdowns(): Promise<Countdown[]> {
