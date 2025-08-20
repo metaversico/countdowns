@@ -1,8 +1,17 @@
 import { Hono } from "hono";
 import { Countdown, CountdownInput } from "../types.ts";
 import { saveCountdown, listCountdowns } from "../store.ts";
+import { rateLimitMiddleware, getDefaultRateLimitConfig } from "../middleware/rateLimit.ts";
 
 const countdown = new Hono();
+
+// Initialize KV store and rate limiting
+const kv = await Deno.openKv();
+const rateLimitConfig = {
+  ...getDefaultRateLimitConfig(),
+  trustProxy: true, // Enable proxy headers for testing
+};
+const rateLimit = rateLimitMiddleware(rateLimitConfig, kv);
 
 // List all countdowns
 countdown.get("/", async (c) => {
@@ -10,8 +19,8 @@ countdown.get("/", async (c) => {
   return c.json(all);
 });
 
-// Create a new countdown
-countdown.post("/", async (c) => {
+// Create a new countdown (with rate limiting)
+countdown.post("/", rateLimit, async (c) => {
   const body = await c.req.json<CountdownInput>();
   const now = new Date();
   const countdown: Countdown = {
