@@ -3,4 +3,6 @@ WORKDIR /app
 COPY backend/ .
 RUN deno cache main.ts
 EXPOSE 8000
-CMD ["deno", "run", "--allow-net", "--allow-env", "main.ts"]
+# Create data directory for Deno KV
+RUN mkdir -p /app/data
+CMD ["deno", "run", "--allow-net", "--allow-env", "--unstable-kv", "main.ts"]

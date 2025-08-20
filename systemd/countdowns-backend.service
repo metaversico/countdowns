@@ -1,9 +1,9 @@
 [Unit]
-Description=Countdowns backend container
+Description=Countdowns backend container with Deno KV
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/podman run --rm --name countdowns-backend -p 8000:8000 ghcr.io/countdowns/backend:latest
+ExecStart=/usr/bin/podman run --rm --name countdowns-backend -p 8000:8000 -v countdowns-kv-data:/app/data ghcr.io/countdowns/backend:latest
 ExecStop=/usr/bin/podman stop countdowns-backend
 Restart=always
 
