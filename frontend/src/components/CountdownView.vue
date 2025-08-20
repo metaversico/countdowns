@@ -12,22 +12,22 @@
           🎉 This countdown has ended!
         </div>
         
-        <p v-if="countdown.text" class="countdown-description">
-          {{ countdown.text }}
+        <p v-if="currentText" class="countdown-description">
+          {{ currentText }}
         </p>
         
-        <div v-if="countdown.imageUrl" class="countdown-image-container">
+        <div v-if="currentImageUrl" class="countdown-image-container">
           <img 
-            :src="countdown.imageUrl" 
+            :src="currentImageUrl"
             :alt="countdown.title"
             class="countdown-image"
             @error="onImageError"
           />
         </div>
         
-        <div v-if="countdown.ctaUrl" class="cta-container">
+        <div v-if="currentCtaUrl" class="cta-container">
           <a 
-            :href="countdown.ctaUrl" 
+            :href="currentCtaUrl"
             target="_blank" 
             rel="noopener noreferrer"
             class="cta-button"
@@ -106,6 +106,27 @@ const isFinalMinute = computed(() => {
   const target = new Date(props.countdown.expiration).getTime()
   const diff = target - now
   return diff > 0 && diff <= 60000 // Last minute
+})
+
+const currentText = computed(() => {
+  if (isExpired.value && props.countdown.expiredText) {
+    return props.countdown.expiredText
+  }
+  return props.countdown.text
+})
+
+const currentImageUrl = computed(() => {
+  if (isExpired.value && props.countdown.expiredImageUrl) {
+    return props.countdown.expiredImageUrl
+  }
+  return props.countdown.imageUrl
+})
+
+const currentCtaUrl = computed(() => {
+  if (isExpired.value && props.countdown.expiredCtaUrl) {
+    return props.countdown.expiredCtaUrl
+  }
+  return props.countdown.ctaUrl
 })
 
 function formatTimeLeft(): string {

@@ -66,6 +66,46 @@
       />
     </div>
 
+    <div class="advanced-options">
+      <button type="button" @click="showExpiredContent = !showExpiredContent" class="advanced-options-toggle">
+        {{ showExpiredContent ? 'Hide' : 'Show' }} Expired State Content
+      </button>
+      <div v-if="showExpiredContent" class="expired-content-fields">
+        <p class="options-description">
+          Optionally, provide different content to display after the countdown ends.
+        </p>
+        <div class="form-group">
+          <label for="expiredText">Expired Description</label>
+          <textarea
+            id="expiredText"
+            v-model="expiredText"
+            placeholder="What happens now that the countdown is over?"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="expiredImageUrl">Expired Image URL</label>
+          <input
+            id="expiredImageUrl"
+            v-model="expiredImageUrl"
+            placeholder="https://example.com/expired-image.jpg"
+            type="url"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="expiredCtaUrl">Expired Call-to-action Link</label>
+          <input
+            id="expiredCtaUrl"
+            v-model="expiredCtaUrl"
+            placeholder="https://example.com/expired-action"
+            type="url"
+          />
+        </div>
+      </div>
+    </div>
+
     <div class="form-group">
       <label>Theme</label>
       <div class="theme-gallery">
@@ -119,6 +159,11 @@ const imageUrl = ref('')
 const ctaUrl = ref('')
 const theme = ref('glamorous')
 const isSubmitting = ref(false)
+
+const expiredText = ref('')
+const expiredImageUrl = ref('')
+const expiredCtaUrl = ref('')
+const showExpiredContent = ref(false)
 
 const errors = ref({
   title: '',
@@ -213,7 +258,10 @@ async function submit() {
       imageUrl: imageUrl.value || undefined,
       ctaUrl: ctaUrl.value || undefined,
       theme: theme.value,
-      socialAccounts: undefined // For now, we don't collect social accounts in the form
+      socialAccounts: undefined, // For now, we don't collect social accounts in the form
+      expiredText: expiredText.value || undefined,
+      expiredImageUrl: expiredImageUrl.value || undefined,
+      expiredCtaUrl: expiredCtaUrl.value || undefined
     }
 
     const created = await createCountdown(countdownData)
@@ -225,6 +273,9 @@ async function submit() {
     imageUrl.value = ''
     ctaUrl.value = ''
     theme.value = 'glamorous'
+    expiredText.value = ''
+    expiredImageUrl.value = ''
+    expiredCtaUrl.value = ''
     
     emit('created', created)
   } catch (err) {
@@ -302,6 +353,35 @@ input.error, textarea.error, select.error {
 
 .date-input-group select {
   flex: 1;
+}
+
+.advanced-options {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.advanced-options-toggle {
+  background: none;
+  border: none;
+  color: var(--primary-color, #007bff);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.expired-content-fields {
+  margin-top: 1rem;
+}
+
+.options-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #666);
+  margin-bottom: 1rem;
 }
 
 .theme-gallery {

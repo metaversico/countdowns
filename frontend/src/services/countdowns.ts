@@ -8,6 +8,9 @@ export interface CountdownInput {
   imageUrl?: string
   ctaUrl?: string
   theme?: string
+  expiredText?: string
+  expiredImageUrl?: string
+  expiredCtaUrl?: string
 }
 
 export interface Countdown extends CountdownInput {
