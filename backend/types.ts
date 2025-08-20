@@ -11,6 +11,17 @@ export interface CountdownInput {
 }
 
 export interface Countdown extends CountdownInput {
+  id:string;
+  createdAt: string; // ISO date
+  userId?: string;
+}
+
+export interface User {
   id: string;
+  provider: "twitter";
+  providerId: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
   createdAt: string; // ISO date
 }

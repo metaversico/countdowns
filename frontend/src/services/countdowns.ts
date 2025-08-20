@@ -16,6 +16,7 @@ export interface CountdownInput {
 export interface Countdown extends CountdownInput {
   id: string
   createdAt: string
+  userId?: string
 }
 
 export async function listCountdowns(): Promise<Countdown[]> {
@@ -26,4 +27,8 @@ export async function listCountdowns(): Promise<Countdown[]> {
 export async function createCountdown(input: CountdownInput): Promise<Countdown> {
   const res = await axios.post('/api/countdowns', input)
   return res.data
+}
+
+export async function deleteCountdown(id: string): Promise<void> {
+  await axios.delete(`/api/countdowns/${id}`)
 }

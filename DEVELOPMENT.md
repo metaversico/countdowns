@@ -10,6 +10,9 @@ Set typical variables in your shell or a `.env` file consumed by the backend:
 
 - `KV_PATH` – path for Deno KV database file (optional, defaults to memory)
 - `PORT` – API port (defaults to 8000)
+- `JWT_SECRET` – secret key for signing JWTs (required for authentication)
+- `TWITTER_CLIENT_ID` – Twitter OAuth 2.0 client ID (required for authentication)
+- `TWITTER_CLIENT_SECRET` – Twitter OAuth 2.0 client secret (required for authentication)
 
 ## Common Tasks
 The `Makefile` wraps everyday commands so contributors don't have to memorize scripts.

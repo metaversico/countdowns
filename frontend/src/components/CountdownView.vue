@@ -44,9 +44,16 @@
           <p class="created-text">
             Created {{ formatCreatedDate() }}
           </p>
-          <p class="creator-note">
+          <p v-if="!countdown.userId" class="creator-note">
             by an anonymous creator
           </p>
+          <!-- Creator info will be added here in a future step -->
+        </div>
+
+        <div v-if="isOwner" class="owner-actions">
+          <button @click="deleteCountdown" :disabled="isDeleting" class="delete-btn">
+            {{ isDeleting ? 'Deleting...' : 'Delete Countdown' }}
+          </button>
         </div>
       </div>
       
@@ -86,7 +93,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Countdown } from '../services/countdowns'
+import { deleteCountdown as apiDeleteCountdown } from '../services/countdowns'
 import CountdownTimer from './CountdownTimer.vue'
+import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
 
 interface Props {
   countdown: Countdown
@@ -96,10 +106,18 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'create-countdown'): void
   (e: 'countdown-expired'): void
+  (e: 'deleted'): void
 }>()
 
+const auth = useAuthStore()
+const { success, error } = useToast()
 const copied = ref(false)
 const imageError = ref(false)
+const isDeleting = ref(false)
+
+const isOwner = computed(() => {
+  return auth.isAuthenticated && auth.user?.id === props.countdown.userId
+})
 
 const isExpired = computed(() => {
   return new Date(props.countdown.expiration) <= new Date()
@@ -212,6 +230,24 @@ async function copyUrl() {
     }, 2000)
   } catch (err) {
     console.error('Failed to copy URL:', err)
+  }
+}
+
+async function deleteCountdown() {
+  if (!isOwner.value) return
+
+  if (confirm('Are you sure you want to delete this countdown?')) {
+    isDeleting.value = true
+    try {
+      await apiDeleteCountdown(props.countdown.id)
+      success('Countdown deleted successfully')
+      emit('deleted')
+    } catch (err) {
+      error('Failed to delete countdown')
+      console.error(err)
+    } finally {
+      isDeleting.value = false
+    }
   }
 }
 
@@ -334,6 +370,29 @@ async function copyUrl() {
   font-size: 0.8rem;
   color: var(--text-muted, #999);
   font-style: italic;
+}
+
+.owner-actions {
+  margin-top: 2rem;
+}
+
+.delete-btn {
+  background-color: var(--error-color, #dc3545);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.delete-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 
 .call-to-action {

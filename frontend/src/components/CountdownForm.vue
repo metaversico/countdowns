@@ -139,6 +139,12 @@
       </div>
     </div>
 
+    <div v-if="!auth.isAuthenticated" class="auth-prompt">
+      <h3>Want to save this countdown to your profile?</h3>
+      <p>Log in with Twitter to manage your countdowns later.</p>
+      <LoginButton @click="saveFormState">Login and Continue</LoginButton>
+    </div>
+
     <button type="submit" :disabled="!isValid || isSubmitting" class="create-btn">
       {{ isSubmitting ? 'Creating...' : 'Create Countdown' }}
     </button>
@@ -146,15 +152,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { createCountdown, type CountdownInput } from '../services/countdowns'
 import { useToast } from '../composables/useToast'
 import CountdownTimer from './CountdownTimer.vue'
+import LoginButton from './LoginButton.vue'
+import { useAuthStore } from '../stores/auth'
 
 const emit = defineEmits<{ 
   (e: 'created', countdown: any): void 
 }>()
 
+const auth = useAuthStore()
 const { error } = useToast()
 
 const title = ref('')
@@ -230,6 +239,42 @@ watch([title, expiration], () => {
   validateExpiration()
 })
 
+const FORM_STORAGE_KEY = 'countdown_form_state'
+
+function saveFormState() {
+  const state = {
+    title: title.value,
+    expiration: expiration.value,
+    text: text.value,
+    imageUrl: imageUrl.value,
+    ctaUrl: ctaUrl.value,
+    theme: theme.value,
+    expiredText: expiredText.value,
+    expiredImageUrl: expiredImageUrl.value,
+    expiredCtaUrl: expiredCtaUrl.value,
+  }
+  localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(state))
+}
+
+function restoreFormState() {
+  const savedState = localStorage.getItem(FORM_STORAGE_KEY)
+  if (savedState) {
+    const state = JSON.parse(savedState)
+    title.value = state.title
+    expiration.value = state.expiration
+    text.value = state.text
+    imageUrl.value = state.imageUrl
+    ctaUrl.value = state.ctaUrl
+    theme.value = state.theme
+    expiredText.value = state.expiredText
+    expiredImageUrl.value = state.expiredImageUrl
+    expiredCtaUrl.value = state.expiredCtaUrl
+    localStorage.removeItem(FORM_STORAGE_KEY)
+  }
+}
+
+onMounted(restoreFormState)
+
 async function submit() {
   validateTitle()
   validateExpiration()
@@ -265,6 +310,7 @@ async function submit() {
     expiredImageUrl.value = ''
     expiredCtaUrl.value = ''
     
+    localStorage.removeItem(FORM_STORAGE_KEY)
     emit('created', created)
   } catch (err) {
     console.error('Failed to create countdown:', err)
@@ -460,6 +506,25 @@ input.error, textarea.error, select.error {
 .create-btn:disabled {
   background-color: var(--disabled-color, #6c757d);
   cursor: not-allowed;
+}
+
+.auth-prompt {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.auth-prompt h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.auth-prompt p {
+  margin-bottom: 1rem;
+  color: #6c757d;
 }
 
 @media (max-width: 768px) {

@@ -1,5 +1,6 @@
 /* @vitest-environment jsdom */
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { describe, it, expect, vi } from 'vitest'
 import CountdownForm from '../CountdownForm.vue'
 import * as service from '../../services/countdowns'
@@ -13,7 +14,11 @@ describe('CountdownForm', () => {
       createdAt: '2024-01-01T00:00:00Z'
     }
     const mock = vi.spyOn(service, 'createCountdown').mockResolvedValue(mockCountdown)
-    const wrapper = mount(CountdownForm)
+    const wrapper = mount(CountdownForm, {
+      global: {
+        plugins: [createPinia()],
+      },
+    })
 
     await wrapper.find('input[placeholder="What are you counting down to?"]').setValue('Demo')
     await wrapper.find('input[type="datetime-local"]').setValue('2030-01-01T00:00')

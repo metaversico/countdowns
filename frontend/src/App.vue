@@ -3,6 +3,14 @@
     <Transition name="slide" mode="out-in">
       <div v-if="currentView === 'home'" key="home" class="home-view">
         <header class="app-header">
+          <div class="auth-section">
+            <div v-if="auth.isAuthenticated" class="user-profile">
+              <img :src="auth.user?.avatarUrl" alt="User avatar" class="avatar" />
+              <span class="username">{{ auth.user?.displayName }}</span>
+              <button @click="auth.logout" class="logout-button">Logout</button>
+            </div>
+            <LoginButton v-else />
+          </div>
           <div class="hero-section">
             <h1 class="app-title">⏰ Countdowns</h1>
             <p class="app-subtitle">Create and share viral countdowns in seconds</p>
@@ -77,10 +85,13 @@ import CountdownShare from './components/CountdownShare.vue'
 import CountdownView from './components/CountdownView.vue'
 import CountdownList from './components/CountdownList.vue'
 import Toast from './components/Toast.vue'
+import LoginButton from './components/LoginButton.vue'
 import { listCountdowns, type Countdown } from './services/countdowns'
 import { useToast } from './composables/useToast'
+import { useAuthStore } from './stores/auth'
 import { analytics } from './services/analytics'
 
+const auth = useAuthStore()
 const { success } = useToast()
 
 const countdowns = ref<Countdown[]>([])
@@ -176,11 +187,49 @@ onMounted(loadCountdowns)
 }
 
 .app-header {
+  position: relative;
   text-align: center;
   padding: 3rem 1rem 2rem;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-section {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.logout-button {
+  background: none;
+  border: 1px solid white;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .hero-section {
