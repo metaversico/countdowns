@@ -4,30 +4,15 @@ packages:
   - podman
 
 write_files:
-  - path: /etc/systemd/system/countdowns-postgres.service
-    permissions: "0644"
-    content: |
-      [Unit]
-      Description=PostgreSQL container for countdowns
-      After=network-online.target
-
-      [Service]
-      ExecStart=/usr/bin/podman run --rm --name countdowns-postgres -e POSTGRES_DB=countdowns -e POSTGRES_USER=countdowns -e POSTGRES_PASSWORD=countdowns -v countdowns-pgdata:/var/lib/postgresql/data -p 5432:5432 docker.io/library/postgres:16-alpine
-      ExecStop=/usr/bin/podman stop countdowns-postgres
-      Restart=always
-
-      [Install]
-      WantedBy=multi-user.target
-
   - path: /etc/systemd/system/countdowns-backend.service
     permissions: "0644"
     content: |
       [Unit]
-      Description=Countdowns backend container
+      Description=Countdowns backend container with Deno KV
       After=network-online.target
 
       [Service]
-      ExecStart=/usr/bin/podman run --rm --name countdowns-backend -p 8000:8000 ghcr.io/countdowns/backend:latest
+      ExecStart=/usr/bin/podman run --rm --name countdowns-backend -p 8000:8000 -v countdowns-kv-data:/app/data ghcr.io/countdowns/backend:latest
       ExecStop=/usr/bin/podman stop countdowns-backend
       Restart=always
 
@@ -51,6 +36,5 @@ write_files:
 
 runcmd:
   - systemctl daemon-reload
-  - systemctl enable --now countdowns-postgres.service
   - systemctl enable --now countdowns-backend.service
   - systemctl enable --now countdowns-frontend.service
