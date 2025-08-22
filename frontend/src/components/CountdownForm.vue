@@ -1,31 +1,33 @@
 <template>
-  <form @submit.prevent="submit" class="countdown-form">
-    <div class="form-group">
-      <label for="title">Title*</label>
+  <form @submit.prevent="submit" class="p-8 text-text-primary">
+    <div class="mb-6">
+      <label for="title" class="block mb-2 font-bold text-text-secondary">Title*</label>
       <input 
         id="title"
         v-model="title" 
         placeholder="What are you counting down to?"
         maxlength="100"
-        :class="{ error: errors.title }"
+        class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
+        :class="{ 'border-error': errors.title }"
         @blur="validateTitle"
       />
-      <div v-if="errors.title" class="error-text">{{ errors.title }}</div>
-      <div class="char-count">{{ title.length }}/100</div>
+      <div v-if="errors.title" class="text-error text-sm mt-1">{{ errors.title }}</div>
+      <div class="text-right text-text-muted text-xs mt-1">{{ title.length }}/100</div>
     </div>
 
-    <div class="form-group">
-      <label for="expiration">When does it end?*</label>
-      <div class="date-input-group">
+    <div class="mb-6">
+      <label for="expiration" class="block mb-2 font-bold text-text-secondary">When does it end?*</label>
+      <div class="flex flex-col sm:flex-row items-center gap-4">
         <input 
           id="expiration"
           v-model="expiration" 
           type="datetime-local"
-          :class="{ error: errors.expiration }"
+          class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
+          :class="{ 'border-error': errors.expiration }"
           @blur="validateExpiration"
         />
-        <span class="or">or</span>
-        <select v-model="quickDuration" @change="setQuickDuration">
+        <span class="text-text-muted">or</span>
+        <select v-model="quickDuration" @change="setQuickDuration" class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none">
           <option value="">Choose preset</option>
           <option value="1">In 1 day</option>
           <option value="7">In 1 week</option>
@@ -33,119 +35,126 @@
           <option value="365">In 1 year</option>
         </select>
       </div>
-      <div v-if="errors.expiration" class="error-text">{{ errors.expiration }}</div>
+      <div v-if="errors.expiration" class="text-error text-sm mt-1">{{ errors.expiration }}</div>
     </div>
 
-    <div class="form-group">
-      <label for="text">Description</label>
+    <div class="mb-6">
+      <label for="text" class="block mb-2 font-bold text-text-secondary">Description</label>
       <textarea 
         id="text"
         v-model="text" 
         placeholder="Add context or excitement..."
         rows="3"
+        class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
       ></textarea>
     </div>
 
-    <div class="form-group">
-      <label for="imageUrl">Image URL</label>
-      <input 
-        id="imageUrl"
-        v-model="imageUrl" 
-        placeholder="https://example.com/image.jpg"
-        type="url"
-      />
+    <div class="grid sm:grid-cols-2 gap-6 mb-6">
+      <div>
+        <label for="imageUrl" class="block mb-2 font-bold text-text-secondary">Image URL</label>
+        <input
+          id="imageUrl"
+          v-model="imageUrl"
+          placeholder="https://example.com/image.jpg"
+          type="url"
+          class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
+        />
+      </div>
+      <div>
+        <label for="ctaUrl" class="block mb-2 font-bold text-text-secondary">Call-to-action Link</label>
+        <input
+          id="ctaUrl"
+          v-model="ctaUrl"
+          placeholder="https://example.com"
+          type="url"
+          class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
+        />
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="ctaUrl">Call-to-action Link</label>
-      <input 
-        id="ctaUrl"
-        v-model="ctaUrl" 
-        placeholder="https://example.com"
-        type="url"
-      />
-    </div>
-
-    <div class="advanced-options">
-      <button type="button" @click="showExpiredContent = !showExpiredContent" class="advanced-options-toggle">
+    <div class="mb-6 border border-border-light rounded-md p-4">
+      <button type="button" @click="showExpiredContent = !showExpiredContent" class="font-bold text-primary hover:underline">
         {{ showExpiredContent ? 'Hide' : 'Show' }} Expired State Content
       </button>
-      <div v-if="showExpiredContent" class="expired-content-fields">
-        <p class="options-description">
+      <div v-if="showExpiredContent" class="mt-4 space-y-4">
+        <p class="text-sm text-text-muted">
           Optionally, provide different content to display after the countdown ends.
         </p>
-        <div class="form-group">
-          <label for="expiredText">Expired Description</label>
+        <div>
+          <label for="expiredText" class="block mb-2 font-bold text-text-secondary">Expired Description</label>
           <textarea
             id="expiredText"
             v-model="expiredText"
             placeholder="What happens now that the countdown is over?"
             rows="3"
+            class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
           ></textarea>
         </div>
-
-        <div class="form-group">
-          <label for="expiredImageUrl">Expired Image URL</label>
-          <input
-            id="expiredImageUrl"
-            v-model="expiredImageUrl"
-            placeholder="https://example.com/expired-image.jpg"
-            type="url"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="expiredCtaUrl">Expired Call-to-action Link</label>
-          <input
-            id="expiredCtaUrl"
-            v-model="expiredCtaUrl"
-            placeholder="https://example.com/expired-action"
-            type="url"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Theme</label>
-      <div class="theme-gallery">
-        <div 
-          v-for="themeOption in themes" 
-          :key="themeOption.name"
-          class="theme-option"
-          :class="{ selected: theme === themeOption.name }"
-          @click="theme = themeOption.name"
-        >
-          <div :class="`theme-preview theme-${themeOption.name}`">
-            <div class="preview-timer">12:34:56</div>
+        <div class="grid sm:grid-cols-2 gap-6">
+          <div>
+            <label for="expiredImageUrl" class="block mb-2 font-bold text-text-secondary">Expired Image URL</label>
+            <input
+              id="expiredImageUrl"
+              v-model="expiredImageUrl"
+              placeholder="https://example.com/expired-image.jpg"
+              type="url"
+              class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
+            />
           </div>
-          <span class="theme-name">{{ themeOption.label }}</span>
+          <div>
+            <label for="expiredCtaUrl" class="block mb-2 font-bold text-text-secondary">Expired Call-to-action Link</label>
+            <input
+              id="expiredCtaUrl"
+              v-model="expiredCtaUrl"
+              placeholder="https://example.com/expired-action"
+              type="url"
+              class="w-full p-3 bg-bg-tertiary border-2 border-border-light rounded-md focus:border-primary focus:outline-none"
+            />
+          </div>
         </div>
       </div>
     </div>
 
-    <div v-if="preview" class="preview-section">
-      <h3>Preview</h3>
-      <div :class="`countdown-preview theme-${theme}`">
-        <h2>{{ title || 'Your countdown title' }}</h2>
+    <div class="mb-8">
+      <label class="block mb-2 font-bold text-text-secondary">Theme</label>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div 
+          v-for="themeOption in themeOptions"
+          :key="themeOption"
+          class="cursor-pointer text-center p-2 rounded-lg transition-all"
+          :class="{ 'bg-primary/20 ring-2 ring-primary': theme === themeOption }"
+          @click="theme = themeOption"
+        >
+          <div :class="`theme-preview theme-${themeOption} w-full h-16 rounded-md flex items-center justify-center mb-2 font-mono font-bold`">
+            12:34:56
+          </div>
+          <span class="text-sm font-semibold capitalize">{{ themeOption }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="preview" class="mb-8 p-4 border border-border-light rounded-md bg-bg-tertiary">
+      <h3 class="font-bold mb-4 text-text-secondary">Preview</h3>
+      <div :class="`text-center p-4 rounded-md theme-${theme}`">
+        <h4 class="font-bold text-2xl">{{ title || 'Your countdown title' }}</h4>
         <CountdownTimer 
           v-if="expiration"
           :expires-at="expiration"
           :show-progress="true"
-          class="preview-timer"
+          class="my-4 scale-75"
         />
         <p v-if="text">{{ text }}</p>
-        <img v-if="imageUrl" :src="imageUrl" alt="Countdown image" class="preview-image" />
+        <img v-if="imageUrl" :src="imageUrl" alt="Countdown image" class="max-w-xs max-h-40 object-cover rounded-md mt-4 mx-auto" />
       </div>
     </div>
 
-    <div v-if="!auth.isAuthenticated" class="auth-prompt">
-      <h3>Want to save this countdown to your profile?</h3>
-      <p>Log in with Twitter to manage your countdowns later.</p>
+    <div v-if="!auth.isAuthenticated" class="my-8 p-6 text-center bg-bg-tertiary rounded-lg border border-border-light">
+      <h3 class="font-bold text-xl mb-2">Want to save this countdown to your profile?</h3>
+      <p class="text-text-muted mb-4">Log in to manage your countdowns later.</p>
       <LoginButton @click="saveFormState">Login and Continue</LoginButton>
     </div>
 
-    <button type="submit" :disabled="!isValid || isSubmitting" class="create-btn">
+    <button type="submit" :disabled="!isValid || isSubmitting" class="w-full create-btn py-4 px-8 text-lg font-bold uppercase rounded-full transition-transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
       {{ isSubmitting ? 'Creating...' : 'Create Countdown' }}
     </button>
   </form>
@@ -158,6 +167,7 @@ import { useToast } from '../composables/useToast'
 import CountdownTimer from './CountdownTimer.vue'
 import LoginButton from './LoginButton.vue'
 import { useAuthStore } from '../stores/auth'
+import { useTheme } from '../composables/useTheme'
 
 const emit = defineEmits<{ 
   (e: 'created', countdown: any): void 
@@ -165,6 +175,7 @@ const emit = defineEmits<{
 
 const auth = useAuthStore()
 const { error } = useToast()
+const { theme: currentTheme, themes: themeOptions, setTheme } = useTheme()
 
 const title = ref('')
 const expiration = ref('')
@@ -172,7 +183,7 @@ const quickDuration = ref('')
 const text = ref('')
 const imageUrl = ref('')
 const ctaUrl = ref('')
-const theme = ref('glamorous')
+const theme = ref(currentTheme.value)
 const isSubmitting = ref(false)
 
 const expiredText = ref('')
@@ -184,14 +195,6 @@ const errors = ref({
   title: '',
   expiration: ''
 })
-
-const themes = [
-  { name: 'glamorous', label: 'Glamorous' },
-  { name: 'mainframe', label: 'Mainframe' },
-  { name: 'serious', label: 'Serious' },
-  { name: 'playful', label: 'Playful' },
-  { name: 'zen', label: 'Zen' }
-]
 
 const preview = computed(() => title.value || text.value || imageUrl.value)
 
@@ -232,11 +235,15 @@ function setQuickDuration() {
   }
 }
 
-// Removed formatTimeLeft function - now using CountdownTimer component
-
 watch([title, expiration], () => {
   validateTitle()
   validateExpiration()
+})
+
+watch(theme, (newTheme) => {
+  if (newTheme !== 'system') {
+    setTheme(newTheme)
+  }
 })
 
 const FORM_STORAGE_KEY = 'countdown_form_state'
@@ -291,7 +298,7 @@ async function submit() {
       imageUrl: imageUrl.value || undefined,
       ctaUrl: ctaUrl.value || undefined,
       theme: theme.value,
-      socialAccounts: undefined, // For now, we don't collect social accounts in the form
+      socialAccounts: undefined,
       expiredText: expiredText.value || undefined,
       expiredImageUrl: expiredImageUrl.value || undefined,
       expiredCtaUrl: expiredCtaUrl.value || undefined
@@ -322,223 +329,7 @@ async function submit() {
 </script>
 
 <style scoped>
-.countdown-form {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-primary, #333);
-}
-
-input, textarea, select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid var(--border-color, #e1e5e9);
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
-}
-
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  border-color: var(--accent-color, #007bff);
-}
-
-input.error, textarea.error, select.error {
-  border-color: var(--error-color, #dc3545);
-}
-
-.error-text {
-  color: var(--error-color, #dc3545);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
-.char-count {
-  font-size: 0.75rem;
-  color: var(--text-secondary, #666);
-  text-align: right;
-  margin-top: 0.25rem;
-}
-
-.date-input-group {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.date-input-group input {
-  flex: 1;
-}
-
-.or {
-  color: var(--text-secondary, #666);
-  font-size: 0.875rem;
-}
-
-.date-input-group select {
-  flex: 1;
-}
-
-.advanced-options {
-  margin-bottom: 1.5rem;
-  border: 1px solid var(--border-color, #e1e5e9);
-  border-radius: 4px;
-  padding: 1rem;
-}
-
-.advanced-options-toggle {
-  background: none;
-  border: none;
-  color: var(--primary-color, #007bff);
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-}
-
-.expired-content-fields {
-  margin-top: 1rem;
-}
-
-.options-description {
-  font-size: 0.9rem;
-  color: var(--text-secondary, #666);
-  margin-bottom: 1rem;
-}
-
-.theme-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.theme-option {
-  cursor: pointer;
-  text-align: center;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.theme-option:hover {
-  background-color: var(--hover-bg, #f8f9fa);
-}
-
-.theme-option.selected {
-  background-color: var(--selected-bg, #e3f2fd);
-}
-
-.theme-preview {
-  width: 100%;
-  height: 60px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.5rem;
-  font-family: monospace;
-  font-weight: bold;
-}
-
-.theme-name {
-  font-size: 0.875rem;
-  color: var(--text-primary, #333);
-}
-
-.preview-section {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  border: 1px solid var(--border-color, #e1e5e9);
-  border-radius: 4px;
-  background-color: var(--preview-bg, #f8f9fa);
-}
-
-.countdown-preview {
-  text-align: center;
-  padding: 1rem;
-  border-radius: 4px;
-}
-
-/* CountdownTimer component handles its own styling */
 .preview-timer {
-  margin: 1rem 0;
   transform: scale(0.8);
-}
-
-.preview-image {
-  max-width: 200px;
-  max-height: 150px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-top: 1rem;
-}
-
-.create-btn {
-  width: 100%;
-  padding: 1rem;
-  background-color: var(--primary-color, #007bff);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.create-btn:hover:not(:disabled) {
-  background-color: var(--primary-hover, #0056b3);
-}
-
-.create-btn:disabled {
-  background-color: var(--disabled-color, #6c757d);
-  cursor: not-allowed;
-}
-
-.auth-prompt {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  text-align: center;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-}
-
-.auth-prompt h3 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-}
-
-.auth-prompt p {
-  margin-bottom: 1rem;
-  color: #6c757d;
-}
-
-@media (max-width: 768px) {
-  .countdown-form {
-    padding: 1rem;
-  }
-  
-  .date-input-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .theme-gallery {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  }
 }
 </style>

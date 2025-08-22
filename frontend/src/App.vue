@@ -1,37 +1,43 @@
 <template>
-  <div class="app">
+  <div class="min-h-screen font-sans bg-bg-primary text-text-primary transition-colors duration-500">
     <Transition name="slide" mode="out-in">
-      <div v-if="currentView === 'home'" key="home" class="home-view">
-        <header class="app-header">
-          <div class="auth-section">
-            <div v-if="auth.isAuthenticated" class="user-profile">
-              <img :src="auth.user?.avatarUrl" alt="User avatar" class="avatar" />
-              <span class="username">{{ auth.user?.displayName }}</span>
-              <button @click="auth.logout" class="logout-button">Logout</button>
+      <div v-if="currentView === 'home'" key="home">
+        <header class="relative text-center py-12 px-4 bg-white/10 backdrop-blur-lg border-b border-white/20">
+          <div class="absolute top-4 right-4 flex items-center gap-4">
+            <div v-if="auth.isAuthenticated" class="flex items-center gap-2 text-white">
+              <img :src="auth.user?.avatarUrl" alt="User avatar" class="w-8 h-8 rounded-full border-2 border-white" />
+              <span class="font-semibold">{{ auth.user?.displayName }}</span>
+              <button @click="auth.logout" class="px-2 py-1 text-sm border border-white rounded hover:bg-white/20 transition">Logout</button>
             </div>
             <LoginButton v-else />
           </div>
-          <div class="hero-section">
-            <h1 class="app-title">⏰ Countdowns</h1>
-            <p class="app-subtitle">Create and share viral countdowns in seconds</p>
-            <button @click="showCreateForm = true" class="cta-button">
+          <div class="max-w-3xl mx-auto">
+            <h1 class="text-6xl md:text-7xl font-extrabold text-white !text-primary leading-tight">
+              ⏰ Countdowns
+            </h1>
+            <p class="text-xl text-white/90 mt-4 mb-8 font-light">
+              Create and share viral countdowns in seconds
+            </p>
+            <button @click="showCreateForm = true" class="primary-btn create-btn py-4 px-8 text-lg font-bold uppercase rounded-full transition-transform hover:scale-105">
               Start a Countdown
             </button>
           </div>
         </header>
 
-        <main class="main-content">
+        <main class="max-w-7xl mx-auto p-4 md:p-8">
           <Transition name="modal">
-            <div v-if="showCreateForm" class="create-section">
-              <div class="form-container">
-                <button @click="showCreateForm = false" class="close-btn">×</button>
+            <div v-if="showCreateForm" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+              <div class="relative bg-bg-secondary rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                <button @click="showCreateForm = false" class="absolute top-4 right-4 text-text-muted hover:text-text-primary text-3xl z-10">
+                  &times;
+                </button>
                 <CountdownForm @created="onCountdownCreated" />
               </div>
             </div>
           </Transition>
 
           <Transition name="fade">
-            <div v-if="createdCountdown && showShare" class="share-section">
+            <div v-if="createdCountdown && showShare" class="bg-bg-secondary rounded-xl mb-8 shadow-lg">
               <CountdownShare 
                 :countdown="createdCountdown" 
                 @create-another="startAnother"
@@ -39,20 +45,23 @@
             </div>
           </Transition>
 
-          <section class="countdown-feeds">
-            <div class="feed-tabs">
+          <section class="bg-bg-secondary rounded-xl shadow-lg overflow-hidden">
+            <div class="flex bg-bg-tertiary border-b border-border-light">
               <button 
                 v-for="feed in feeds" 
                 :key="feed.id"
                 @click="activeTab = feed.id"
-                :class="['tab', { active: activeTab === feed.id }]"
+                :class="[
+                  'flex-1 py-3 px-4 font-semibold text-text-secondary transition-colors',
+                  { '!bg-bg-secondary !text-text-primary border-b-2 border-primary': activeTab === feed.id }
+                ]"
               >
                 {{ feed.label }}
               </button>
             </div>
             
             <Transition name="fade" mode="out-in">
-              <div :key="activeTab" class="feed-content">
+              <div :key="activeTab" class="p-4">
                 <CountdownList 
                   :items="filteredCountdowns" 
                   @view-countdown="viewCountdown"
@@ -64,13 +73,15 @@
         </main>
       </div>
 
-      <div v-else-if="currentView === 'view'" key="view" class="view-section">
+      <div v-else-if="currentView === 'view'" key="view" class="relative">
         <CountdownView 
           :countdown="selectedCountdown!" 
           @create-countdown="goToCreate"
           @countdown-expired="onCountdownExpired"
         />
-        <button @click="goHome" class="back-btn">← Back to Home</button>
+        <button @click="goHome" class="fixed top-8 left-8 py-2 px-6 bg-bg-secondary/90 backdrop-blur-sm rounded-full font-semibold text-text-primary z-50 transition-transform hover:scale-105">
+          &larr; Back to Home
+        </button>
       </div>
     </Transition>
     
@@ -89,7 +100,10 @@ import LoginButton from './components/LoginButton.vue'
 import { listCountdowns, type Countdown } from './services/countdowns'
 import { useToast } from './composables/useToast'
 import { useAuthStore } from './stores/auth'
+import { useTheme } from './composables/useTheme'
 import { analytics } from './services/analytics'
+
+useTheme()
 
 const auth = useAuthStore()
 const { success } = useToast()
@@ -176,336 +190,16 @@ function onCountdownExpired(countdown: Countdown) {
 onMounted(loadCountdowns)
 </script>
 
-<style scoped>
-.app {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.home-view {
-  min-height: 100vh;
-}
-
-.app-header {
-  position: relative;
-  text-align: center;
-  padding: 3rem 1rem 2rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.auth-section {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: white;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-.logout-button {
-  background: none;
-  border: 1px solid white;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.logout-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.hero-section {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.app-title {
-  font-size: 4rem;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  line-height: 1;
-}
-
-.app-subtitle {
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 2rem;
-  font-weight: 300;
-}
-
-.cta-button {
-  padding: 1.5rem 3rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.cta-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
-}
-
-.main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.create-section {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.form-container {
-  position: relative;
-  background: white;
-  border-radius: 12px;
-  max-width: 700px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: #666;
-  z-index: 10;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.share-section {
-  background: white;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.countdown-feeds {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.feed-tabs {
-  display: flex;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.tab {
-  flex: 1;
-  padding: 1rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  color: #6c757d;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.tab:hover {
-  background-color: #e9ecef;
-  color: #495057;
-}
-
-.tab.active {
-  color: #007bff;
-  background-color: white;
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background-color: #007bff;
-}
-
-.feed-content {
-  padding: 1rem;
-}
-
-.view-section {
-  position: relative;
-}
-
-.back-btn {
-  position: fixed;
-  top: 2rem;
-  left: 2rem;
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #333;
-  backdrop-filter: blur(10px);
-  transition: all 0.2s ease;
-  z-index: 100;
-}
-
-.back-btn:hover {
-  background: white;
-  transform: translateX(-2px);
-}
-
-/* Mobile-first responsive design */
-@media (max-width: 768px) {
-  .app-title {
-    font-size: 2.5rem;
-  }
-  
-  .app-subtitle {
-    font-size: 1.2rem;
-  }
-  
-  .cta-button {
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-  }
-  
-  .app-header {
-    padding: 2rem 1rem 1rem;
-  }
-  
-  .main-content {
-    padding: 1rem 0.5rem;
-  }
-  
-  .create-section {
-    padding: 0.5rem;
-  }
-  
-  .form-container {
-    margin: 0;
-    border-radius: 8px;
-  }
-  
-  .feed-tabs {
-    flex-direction: column;
-  }
-  
-  .tab {
-    text-align: left;
-    border-bottom: 1px solid #e9ecef;
-  }
-  
-  .tab:last-child {
-    border-bottom: none;
-  }
-  
-  .back-btn {
-    top: 1rem;
-    left: 1rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .app-title {
-    font-size: 2rem;
-  }
-  
-  .app-subtitle {
-    font-size: 1rem;
-  }
-  
-  .cta-button {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-  }
-}
-
-/* 320px support for very small devices */
-@media (max-width: 320px) {
-  .app-header {
-    padding: 1rem 0.5rem;
-  }
-  
-  .app-title {
-    font-size: 1.75rem;
-  }
-  
-  .main-content {
-    padding: 0.5rem 0.25rem;
-  }
-  
-  .create-section {
-    padding: 0.25rem;
-  }
-}
-
+<style>
 /* Vue Transitions */
 .slide-enter-active,
 .slide-leave-active {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-
 .slide-enter-from {
   opacity: 0;
   transform: translateX(30px);
 }
-
 .slide-leave-to {
   opacity: 0;
   transform: translateX(-30px);
@@ -515,7 +209,6 @@ onMounted(loadCountdowns)
 .fade-leave-active {
   transition: all 0.3s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
@@ -526,23 +219,19 @@ onMounted(loadCountdowns)
 .modal-leave-active {
   transition: all 0.3s ease;
 }
-
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
 }
-
-.modal-enter-active .form-container,
-.modal-leave-active .form-container {
+.modal-enter-active .relative,
+.modal-leave-active .relative {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-.modal-enter-from .form-container {
+.modal-enter-from .relative {
   transform: scale(0.8) translateY(-20px);
   opacity: 0;
 }
-
-.modal-leave-to .form-container {
+.modal-leave-to .relative {
   transform: scale(0.9) translateY(10px);
   opacity: 0;
 }

@@ -1,88 +1,91 @@
 <template>
-  <div class="countdown-view">
-    <div :class="`countdown-container theme-${countdown.theme || 'glamorous'}`">
-      <div class="countdown-content">
-        <h1 class="countdown-title">{{ countdown.title }}</h1>
+  <div
+    :class="`min-h-screen flex flex-col items-center p-4 sm:p-8 theme-${countdown.theme || 'glamorous'}`"
+  >
+    <div class="w-full max-w-4xl text-center mb-12">
+      <div class="p-8 sm:p-12 rounded-2xl mb-8 relative overflow-hidden">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-8 leading-tight break-words">
+          {{ countdown.title }}
+        </h1>
         
         <CountdownTimer 
           :expires-at="countdown.expiration"
           :started-at="countdown.createdAt"
           :show-progress="true"
-          class="main-countdown-timer"
+          class="my-8 scale-125"
           @expired="onCountdownExpired"
         />
         
-        <div v-if="isExpired" class="expired-message">
+        <div v-if="isExpired" class="text-2xl font-bold text-success my-4 animate-celebrateExpired">
           🎉 This countdown has ended!
         </div>
         
-        <p v-if="currentText" class="countdown-description">
+        <p v-if="currentText" class="text-lg sm:text-xl leading-relaxed my-8 max-w-2xl mx-auto">
           {{ currentText }}
         </p>
         
-        <div v-if="currentImageUrl" class="countdown-image-container">
+        <div v-if="currentImageUrl" class="my-8">
           <img 
             :src="currentImageUrl"
             :alt="countdown.title"
-            class="countdown-image"
+            class="max-w-full max-h-96 object-cover rounded-lg shadow-lg mx-auto"
             @error="onImageError"
           />
         </div>
         
-        <div v-if="currentCtaUrl" class="cta-container">
+        <div v-if="currentCtaUrl" class="my-8">
           <a 
             :href="currentCtaUrl"
             target="_blank" 
             rel="noopener noreferrer"
-            class="cta-button"
+            class="inline-block primary-btn py-3 px-8 text-lg font-bold rounded-lg transition-transform hover:scale-105"
           >
             Take Action
           </a>
         </div>
         
-        <div class="creator-info">
-          <p class="created-text">
+        <div class="mt-8 opacity-70">
+          <p class="text-sm text-text-secondary mb-1">
             Created {{ formatCreatedDate() }}
           </p>
-          <p v-if="!countdown.userId" class="creator-note">
+          <p v-if="!countdown.userId" class="text-xs text-text-muted italic">
             by an anonymous creator
           </p>
-          <!-- Creator info will be added here in a future step -->
         </div>
 
-        <div v-if="isOwner" class="owner-actions">
-          <button @click="deleteCountdown" :disabled="isDeleting" class="delete-btn">
+        <div v-if="isOwner" class="mt-8">
+          <button @click="deleteCountdown" :disabled="isDeleting" class="bg-error text-white py-2 px-4 rounded-md transition hover:bg-opacity-80 disabled:bg-gray-500 disabled:cursor-not-allowed">
             {{ isDeleting ? 'Deleting...' : 'Delete Countdown' }}
           </button>
         </div>
       </div>
       
-      <div class="call-to-action">
-        <h3>Create Your Own Countdown</h3>
-        <p>Make your own countdown in seconds!</p>
-        <button @click="$emit('create-countdown')" class="create-btn">
+      <div class="bg-bg-tertiary/50 p-8 rounded-lg border-2 border-dashed border-border-light">
+        <h3 class="text-2xl font-bold mb-2">Create Your Own Countdown</h3>
+        <p class="text-text-secondary mb-6">Make your own countdown in seconds!</p>
+        <button @click="$emit('create-countdown')" class="create-btn py-3 px-6 text-lg font-bold rounded-lg transition-transform hover:scale-105">
           Make Your Own
         </button>
       </div>
     </div>
     
-    <div class="share-actions">
-      <h3>Share This Countdown</h3>
-      <div class="share-buttons">
-        <button @click="shareOn('twitter')" class="share-btn twitter">
-          <span class="share-icon">𝕏</span>
+    <div class="w-full max-w-4xl text-center mt-8">
+      <h3 class="text-2xl font-bold mb-4">Share This Countdown</h3>
+      <div class="flex justify-center gap-4 flex-wrap">
+        <button @click="shareOn('twitter')" class="flex items-center gap-2 py-2 px-4 bg-black text-white rounded-lg font-semibold transition-transform hover:scale-105">
+          <span class="text-xl">𝕏</span>
           Share
         </button>
-        <button @click="shareOn('facebook')" class="share-btn facebook">
-          <span class="share-icon">f</span>
+        <button @click="shareOn('facebook')" class="flex items-center gap-2 py-2 px-4 bg-[#1877f2] text-white rounded-lg font-semibold transition-transform hover:scale-105">
+          <span class="text-xl font-bold">f</span>
           Share
         </button>
-        <button @click="shareOn('whatsapp')" class="share-btn whatsapp">
-          <span class="share-icon">📱</span>
+        <button @click="shareOn('whatsapp')" class="flex items-center gap-2 py-2 px-4 bg-[#25d366] text-white rounded-lg font-semibold transition-transform hover:scale-105">
+          <span class="text-xl">📱</span>
           Share
         </button>
-        <button @click="copyUrl" class="share-btn copy" :class="{ copied: copied }">
-          <span class="share-icon">📋</span>
+        <button @click="copyUrl" class="flex items-center gap-2 py-2 px-4 bg-secondary text-white rounded-lg font-semibold transition-colors" :class="{ 'bg-success': copied }">
+          <span class="text-xl">📋</span>
           {{ copied ? 'Copied!' : 'Copy Link' }}
         </button>
       </div>
@@ -91,12 +94,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { Countdown } from '../services/countdowns'
 import { deleteCountdown as apiDeleteCountdown } from '../services/countdowns'
 import CountdownTimer from './CountdownTimer.vue'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
+import { useTheme } from '../composables/useTheme'
 
 interface Props {
   countdown: Countdown
@@ -111,6 +115,7 @@ const emit = defineEmits<{
 
 const auth = useAuthStore()
 const { success, error } = useToast()
+const { setTheme } = useTheme()
 const copied = ref(false)
 const imageError = ref(false)
 const isDeleting = ref(false)
@@ -121,13 +126,6 @@ const isOwner = computed(() => {
 
 const isExpired = computed(() => {
   return new Date(props.countdown.expiration) <= new Date()
-})
-
-const isFinalMinute = computed(() => {
-  const now = new Date().getTime()
-  const target = new Date(props.countdown.expiration).getTime()
-  const diff = target - now
-  return diff > 0 && diff <= 60000 // Last minute
 })
 
 const currentText = computed(() => {
@@ -150,26 +148,6 @@ const currentCtaUrl = computed(() => {
   }
   return props.countdown.ctaUrl
 })
-
-function formatTimeLeft(): string {
-  if (!props.countdown.expiration) return '00:00:00'
-  
-  const now = new Date().getTime()
-  const target = new Date(props.countdown.expiration).getTime()
-  const diff = target - now
-
-  if (diff <= 0) return '00:00:00'
-
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-
-  if (days > 0) {
-    return `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  }
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
 
 function onCountdownExpired() {
   emit('countdown-expired')
@@ -251,47 +229,16 @@ async function deleteCountdown() {
   }
 }
 
-// Timer handling now done by CountdownTimer component
+onMounted(() => {
+  setTheme(props.countdown.theme || 'glamorous');
+})
+
+watch(() => props.countdown.theme, (newTheme) => {
+  setTheme(newTheme || 'glamorous');
+});
 </script>
 
 <style scoped>
-.countdown-view {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem 1rem;
-}
-
-.countdown-container {
-  max-width: 800px;
-  width: 100%;
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.countdown-content {
-  padding: 3rem 2rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.countdown-title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
-  line-height: 1.2;
-  word-break: break-word;
-}
-
-/* CountdownTimer component handles its own styling */
-.main-countdown-timer {
-  margin: 2rem 0;
-  transform: scale(1.2);
-}
-
 .main-countdown-timer :deep(.time-value) {
   font-size: 2.5rem;
 }
@@ -300,239 +247,12 @@ async function deleteCountdown() {
   font-size: 1rem;
 }
 
-.expired-message {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--success-color, #28a745);
-  margin: 1rem 0;
-  animation: celebrateExpired 2s ease-in-out;
-}
-
 @keyframes celebrateExpired {
   0%, 100% { transform: scale(1); }
   25%, 75% { transform: scale(1.1); }
   50% { transform: scale(1.05); }
 }
-
-.countdown-description {
-  font-size: 1.25rem;
-  line-height: 1.6;
-  margin: 2rem 0;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.countdown-image-container {
-  margin: 2rem 0;
-}
-
-.countdown-image {
-  max-width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.cta-container {
-  margin: 2rem 0;
-}
-
-.cta-button {
-  display: inline-block;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  text-decoration: none;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.creator-info {
-  margin-top: 2rem;
-  opacity: 0.7;
-}
-
-.created-text {
-  font-size: 0.9rem;
-  color: var(--text-secondary, #666);
-  margin-bottom: 0.25rem;
-}
-
-.creator-note {
-  font-size: 0.8rem;
-  color: var(--text-muted, #999);
-  font-style: italic;
-}
-
-.owner-actions {
-  margin-top: 2rem;
-}
-
-.delete-btn {
-  background-color: var(--error-color, #dc3545);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.delete-btn:hover:not(:disabled) {
-  background-color: #c82333;
-}
-
-.delete-btn:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.call-to-action {
-  background-color: var(--cta-bg, #f8f9fa);
-  padding: 2rem;
-  border-radius: 8px;
-  border: 2px dashed var(--border-color, #e1e5e9);
-}
-
-.call-to-action h3 {
-  margin-bottom: 0.5rem;
-  color: var(--text-primary, #333);
-}
-
-.call-to-action p {
-  margin-bottom: 1.5rem;
-  color: var(--text-secondary, #666);
-}
-
-.create-btn {
-  padding: 1rem 2rem;
-  background-color: var(--primary-color, #007bff);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3);
-}
-
-.create-btn:hover {
-  background-color: var(--primary-hover, #0056b3);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4);
-}
-
-.share-actions {
-  margin-top: 2rem;
-  text-align: center;
-}
-
-.share-actions h3 {
-  margin-bottom: 1rem;
-  color: var(--text-primary, #333);
-}
-
-.share-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.share-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.share-btn.twitter {
-  background-color: #000;
-  color: white;
-}
-
-.share-btn.facebook {
-  background-color: #1877f2;
-  color: white;
-}
-
-.share-btn.whatsapp {
-  background-color: #25d366;
-  color: white;
-}
-
-.share-btn.copy {
-  background-color: var(--secondary-color, #6c757d);
-  color: white;
-}
-
-.share-btn.copy.copied {
-  background-color: var(--success-color, #28a745);
-}
-
-.share-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.share-icon {
-  font-size: 1.1rem;
-}
-
-@media (max-width: 768px) {
-  .countdown-view {
-    padding: 1rem 0.5rem;
-  }
-  
-  .countdown-content {
-    padding: 2rem 1rem;
-  }
-  
-  .countdown-title {
-    font-size: 2rem;
-  }
-  
-  .countdown-timer {
-    font-size: 2.5rem;
-  }
-  
-  .countdown-description {
-    font-size: 1.1rem;
-  }
-  
-  .share-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .share-btn {
-    width: 200px;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .countdown-title {
-    font-size: 1.5rem;
-  }
-  
-  .countdown-timer {
-    font-size: 2rem;
-  }
+.animate-celebrateExpired {
+  animation: celebrateExpired 2s ease-in-out;
 }
 </style>

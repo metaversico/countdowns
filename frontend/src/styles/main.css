@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Base Theme Variables - Fallbacks */
 :root {
   /* 8px spacing grid as per specs */
