@@ -1,15 +1,22 @@
 import axios from 'axios'
 
-export interface Countdown {
-  id: string
-  title: string
-  expiration: string
-  createdAt?: string
-}
-
 export interface CountdownInput {
   title: string
   expiration: string
+  socialAccounts?: string[]
+  text?: string
+  imageUrl?: string
+  ctaUrl?: string
+  theme?: string
+  expiredText?: string
+  expiredImageUrl?: string
+  expiredCtaUrl?: string
+}
+
+export interface Countdown extends CountdownInput {
+  id: string
+  createdAt: string
+  userId?: string
 }
 
 export interface RateLimitError {
@@ -42,4 +49,8 @@ export async function createCountdown(input: CountdownInput): Promise<Countdown>
     }
     throw error
   }
+}
+
+export async function deleteCountdown(id: string): Promise<void> {
+  await axios.delete(`/api/countdowns/${id}`)
 }

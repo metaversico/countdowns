@@ -1,9 +1,21 @@
 import { Hono } from "hono";
-import { Countdown, CountdownInput } from "../types.ts";
-import { saveCountdown, listCountdowns } from "../store.ts";
-import { rateLimitMiddleware, getDefaultRateLimitConfig } from "../middleware/rateLimit.ts";
+import { Countdown, CountdownInput, User } from "../types.ts";
+import {
+  saveCountdown,
+  listCountdowns,
+  getCountdown,
+  deleteCountdown,
+} from "../store.ts";
+import {
+  rateLimitMiddleware,
+  getDefaultRateLimitConfig,
+} from "../middleware/rateLimit.ts";
 
-const countdown = new Hono();
+type AuthVariables = {
+  user?: User;
+};
+
+const countdown = new Hono<{ Variables: AuthVariables }>();
 
 // Initialize KV store and rate limiting
 const kv = await Deno.openKv();
@@ -21,6 +33,7 @@ countdown.get("/", async (c) => {
 
 // Create a new countdown (with rate limiting)
 countdown.post("/", rateLimit, async (c) => {
+  const user = c.get("user");
   const body = await c.req.json<CountdownInput>();
   const now = new Date();
   const countdown: Countdown = {
@@ -32,9 +45,35 @@ countdown.post("/", rateLimit, async (c) => {
     ctaUrl: body.ctaUrl ?? "",
     expiration: new Date(body.expiration).toISOString(),
     createdAt: now.toISOString(),
+    expiredText: body.expiredText ?? "",
+    expiredImageUrl: body.expiredImageUrl ?? "",
+    expiredCtaUrl: body.expiredCtaUrl ?? "",
+    userId: user?.id,
   };
   await saveCountdown(countdown);
   return c.json(countdown, 201);
+});
+
+// Delete a countdown
+countdown.delete("/:id", async (c) => {
+  const user = c.get("user");
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const id = c.req.param("id");
+  const countdown = await getCountdown(id);
+
+  if (!countdown) {
+    return c.json({ error: "Not Found" }, 404);
+  }
+
+  if (countdown.userId !== user.id) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  await deleteCountdown(id);
+  return c.json({ message: "Countdown deleted" });
 });
 
 export default countdown;

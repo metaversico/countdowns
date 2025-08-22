@@ -5,9 +5,23 @@ export interface CountdownInput {
   imageUrl?: string;
   ctaUrl?: string;
   expiration: string; // ISO date or relative duration string
+  expiredText?: string;
+  expiredImageUrl?: string;
+  expiredCtaUrl?: string;
 }
 
 export interface Countdown extends CountdownInput {
+  id:string;
+  createdAt: string; // ISO date
+  userId?: string;
+}
+
+export interface User {
   id: string;
+  provider: "twitter";
+  providerId: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
   createdAt: string; // ISO date
 }
